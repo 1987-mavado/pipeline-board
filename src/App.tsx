@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Board } from './components/Board';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { Header } from './components/Header';
@@ -8,6 +8,7 @@ import { useBoard } from './hooks/useBoard';
 import { activeCount } from './lib/board';
 import { todayISODate } from './lib/date';
 import { buildExport, downloadFile, parseImport } from './lib/storage';
+import { applyUrlImport, clearUrlImport, parseUrlImport } from './lib/urlImport';
 import type { BoardId, BoardState } from './types';
 
 const UI_KEY = 'pipeline:ui';
@@ -37,6 +38,22 @@ export default function App() {
     setTab(id);
     localStorage.setItem(UI_KEY, JSON.stringify({ tab: id }));
   };
+
+  // URL-Import: ?add=BASE64 beim ersten Laden verarbeiten
+  useEffect(() => {
+    const entries = parseUrlImport();
+    if (entries.length === 0) return;
+    const updates = applyUrlImport(entries, { jobs, freelance });
+    for (const id of BOARD_ORDER) {
+      const next = updates[id];
+      if (next) boards[id].set(next);
+    }
+    clearUrlImport();
+    // Tab auf das erste betroffene Board wechseln
+    const firstBoard = entries[0]?.board;
+    if (firstBoard) selectTab(firstBoard);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const showToast = useCallback((t: Omit<ToastData, 'id'>) => {
     toastId.current += 1;
