@@ -6,14 +6,14 @@ interface Sample {
   column: string;
   /** Tage seit letzter Statusänderung */
   age: number;
-  fields: Record<string, string>;
+  fields: Record<string, string | string[]>;
 }
 
 const JOB_SAMPLES: Sample[] = [
   {
     column: 'found',
     age: 2,
-    fields: { company: 'Studio Nordlicht', position: 'Creative Director Brand', salary: '95.000 €', note: 'Beispielkarte – lässt sich oben mit einem Klick entfernen.' },
+    fields: { company: 'Studio Nordlicht', position: 'Creative Director Brand', salary: '95.000 €', tasks: ['Creative Direction', 'Markenentwicklung', 'Key Visual', 'Team-Lead'], note: 'Beispielkarte – lässt sich oben mit einem Klick entfernen.' },
   },
   {
     column: 'sent',

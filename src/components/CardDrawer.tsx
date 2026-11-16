@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { cardTitle, getField, setField } from '../lib/cards';
+import { cardTitle, getField, getList, setField, toggleListValue } from '../lib/cards';
 import { formatDate } from '../lib/date';
-import type { BoardConfig, Card } from '../types';
+import type { BoardConfig, Card, FieldDef } from '../types';
 import { ArrowOutIcon, CrossIcon } from './Icons';
 import { ConfirmDialog } from './ConfirmDialog';
+import { MailDraftSection } from './MailDraftSection';
 
 interface CardDrawerProps {
   config: BoardConfig;
@@ -14,6 +15,9 @@ interface CardDrawerProps {
   onDelete: (id: string) => void;
   onClose: () => void;
 }
+
+/** Einzeilige Textfelder werden beim Speichern getrimmt, Fließtext und Listen nicht. */
+const isTrimmable = (field: FieldDef) => field.type !== 'textarea' && field.type !== 'tags';
 
 export function CardDrawer({ config, mode, card, columnId, onSave, onDelete, onClose }: CardDrawerProps) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -32,6 +36,8 @@ export function CardDrawer({ config, mode, card, columnId, onSave, onDelete, onC
 
   const labelOf = (id: string | null) => config.columns.find((c) => c.id === id)?.label ?? id ?? '';
   const headingTitle = cardTitle(config, draft) || (mode === 'create' ? 'neue karte' : 'ohne titel');
+  const mainFields = config.fields.filter((f) => !f.section);
+  const mailFields = config.fields.filter((f) => f.section === 'mail');
 
   const submit = (e: { preventDefault(): void }) => {
     e.preventDefault();
@@ -45,8 +51,89 @@ export function CardDrawer({ config, mode, card, columnId, onSave, onDelete, onC
       formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalid.key}"]`)?.focus();
       return;
     }
-    const trimmed = config.fields.reduce((c, f) => setField(c, f.key, getField(c, f.key).trim()), draft);
+    const trimmed = config.fields
+      .filter(isTrimmable)
+      .reduce((c, f) => setField(c, f.key, getField(c, f.key).trim()), draft);
     onSave(trimmed, column);
+  };
+
+  const renderField = (field: FieldDef) => {
+    const id = `f-${field.key}`;
+
+    if (field.type === 'tags') {
+      const selected = getList(draft, field.key);
+      return (
+        <fieldset key={field.key} className="field field--full field--tags">
+          <legend className="label">{field.label}</legend>
+          <div className="chips">
+            {field.tags?.map((tag) => {
+              const active = selected.includes(tag);
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`chip${active ? ' chip--active' : ''}`}
+                  aria-pressed={active}
+                  onClick={() => setDraft((d) => toggleListValue(d, field.key, tag))}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      );
+    }
+
+    const value = getField(draft, field.key);
+    const invalid = Boolean(errors[field.key]);
+    const common = {
+      id,
+      name: field.key,
+      className: 'input',
+      value,
+      placeholder: field.placeholder,
+      required: field.required,
+      'aria-invalid': invalid || undefined,
+      'aria-describedby': invalid ? `${id}-err` : undefined,
+      onChange: (e: { target: { value: string } }) => {
+        setDraft((d) => setField(d, field.key, e.target.value));
+        if (invalid) setErrors((er) => ({ ...er, [field.key]: false }));
+      },
+    };
+    return (
+      <div key={field.key} className={`field${field.half ? '' : ' field--full'}`}>
+        <label className="label" htmlFor={id}>
+          {field.label}
+          {field.required && <span aria-hidden="true"> *</span>}
+        </label>
+        {field.type === 'textarea' ? (
+          <textarea {...common} rows={field.rows ?? 5} />
+        ) : field.type === 'select' ? (
+          <select {...common}>
+            {field.options?.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div className="input-row">
+            <input {...common} type={field.type} />
+            {field.type === 'url' && /^https?:\/\//.test(value) && (
+              <a className="input-row__link" href={value} target="_blank" rel="noreferrer noopener" aria-label="link öffnen">
+                <ArrowOutIcon />
+              </a>
+            )}
+          </div>
+        )}
+        {invalid && (
+          <span id={`${id}-err`} className="field__error">
+            pflichtfeld
+          </span>
+        )}
+      </div>
+    );
   };
 
   const history = [...draft.history].reverse();
@@ -94,60 +181,16 @@ export function CardDrawer({ config, mode, card, columnId, onSave, onDelete, onC
             </select>
           </div>
 
-          <div className="field-grid">
-            {config.fields.map((field) => {
-              const id = `f-${field.key}`;
-              const value = getField(draft, field.key);
-              const invalid = Boolean(errors[field.key]);
-              const common = {
-                id,
-                name: field.key,
-                className: 'input',
-                value,
-                placeholder: field.placeholder,
-                required: field.required,
-                'aria-invalid': invalid || undefined,
-                'aria-describedby': invalid ? `${id}-err` : undefined,
-                onChange: (e: { target: { value: string } }) => {
-                  setDraft((d) => setField(d, field.key, e.target.value));
-                  if (invalid) setErrors((er) => ({ ...er, [field.key]: false }));
-                },
-              };
-              return (
-                <div key={field.key} className={`field${field.half ? '' : ' field--full'}`}>
-                  <label className="label" htmlFor={id}>
-                    {field.label}
-                    {field.required && <span aria-hidden="true"> *</span>}
-                  </label>
-                  {field.type === 'textarea' ? (
-                    <textarea {...common} rows={5} />
-                  ) : field.type === 'select' ? (
-                    <select {...common}>
-                      {field.options?.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="input-row">
-                      <input {...common} type={field.type} />
-                      {field.type === 'url' && /^https?:\/\//.test(value) && (
-                        <a className="input-row__link" href={value} target="_blank" rel="noreferrer noopener" aria-label="link öffnen">
-                          <ArrowOutIcon />
-                        </a>
-                      )}
-                    </div>
-                  )}
-                  {invalid && (
-                    <span id={`${id}-err`} className="field__error">
-                      pflichtfeld
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <div className="field-grid">{mainFields.map(renderField)}</div>
+
+          {mailFields.length > 0 && (
+            <MailDraftSection
+              subject={getField(draft, 'draftSubject')}
+              body={getField(draft, 'draftBody')}
+            >
+              <div className="field-grid">{mailFields.map(renderField)}</div>
+            </MailDraftSection>
+          )}
 
           {mode === 'edit' && history.length > 0 && (
             <section aria-labelledby="history-title">

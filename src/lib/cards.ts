@@ -10,7 +10,20 @@ export function uid(): string {
 /** Leere Fachfelder je Board (ohne Metadaten). Basis für neue Karten und für die Normalisierung. */
 export function blankFields(config: BoardConfig): Omit<JobCard, keyof MetaFields> | Omit<FreelanceCard, keyof MetaFields> {
   if (config.id === 'jobs') {
-    return { kind: 'jobs', company: '', position: '', contact: '', salary: '', dateFound: '', dateSent: '', link: '', note: '' };
+    return {
+      kind: 'jobs',
+      company: '',
+      position: '',
+      contact: '',
+      salary: '',
+      dateFound: '',
+      dateSent: '',
+      draftSubject: '',
+      draftBody: '',
+      tasks: [],
+      link: '',
+      note: '',
+    };
   }
   return {
     kind: 'freelance',
@@ -48,6 +61,21 @@ export function getField(card: Card, key: string): string {
 
 export function setField(card: Card, key: string, value: string): Card {
   return { ...card, [key]: value } as Card;
+}
+
+/** Liste von Texten (z. B. Tags); alles andere ergibt [] */
+export function getList(card: Card, key: string): string[] {
+  return toStringList((card as unknown as Record<string, unknown>)[key]);
+}
+
+export function toggleListValue(card: Card, key: string, value: string): Card {
+  const list = getList(card, key);
+  const next = list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+  return { ...card, [key]: next } as Card;
+}
+
+export function toStringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
 }
 
 export function cardTitle(config: BoardConfig, card: Card): string {

@@ -6,6 +6,30 @@ export const FOLLOW_UP_DAYS = 14;
 /** Version des gespeicherten Formats. Bei Änderungen erhöhen und in storage.ts migrieren. */
 export const STORAGE_VERSION = 1;
 
+/** Absender, der im Hinweis zur Bewerbungsmail genannt wird */
+export const MAIL_SENDER = 'mail@mkriesmair.de';
+
+/** Wie viele Aufgaben-Tags eine Karte höchstens zeigt, der Rest wird als „+N“ zusammengefasst */
+export const CARD_MAX_TAGS = 3;
+
+export const JOB_TASK_TAGS = [
+  'Creative Direction',
+  'Art Direction',
+  'Key Visual',
+  'Kampagnenkonzept',
+  'Markenentwicklung',
+  'CI/CD',
+  'Digital',
+  'Social Media',
+  'Film/Motion',
+  'Print',
+  'Pitchunterstützung',
+  'Team-Lead',
+  'Freelance-Koordination',
+  'KI-Integration',
+  'Strategie',
+] as const;
+
 /** Dauer des Rückgängig-Toasts in ms */
 export const TOAST_DURATION = 5000;
 
@@ -36,17 +60,21 @@ export const BOARDS: Record<BoardId, BoardConfig> = {
     titleKey: 'company',
     subtitleKey: 'position',
     moneyKey: 'salary',
+    tagsKey: 'tasks',
     searchKeys: ['company', 'position'],
     autoDates: { found: 'dateFound', sent: 'dateSent' },
     fields: [
       { key: 'company', label: 'firma', type: 'text', required: true },
       { key: 'position', label: 'position', type: 'text', required: true },
+      { key: 'tasks', label: 'aufgaben', type: 'tags', tags: JOB_TASK_TAGS },
       { key: 'link', label: 'link zur ausschreibung', type: 'url', placeholder: 'https://' },
       { key: 'contact', label: 'ansprechpartner', type: 'text' },
       { key: 'salary', label: 'gehaltsvorstellung', type: 'text', placeholder: 'z. b. 95.000 €' },
       { key: 'dateFound', label: 'datum gefunden', type: 'date', half: true },
       { key: 'dateSent', label: 'datum abgesendet', type: 'date', half: true },
       { key: 'note', label: 'notiz', type: 'textarea' },
+      { key: 'draftSubject', label: 'betreff', type: 'text', section: 'mail' },
+      { key: 'draftBody', label: 'anschreiben', type: 'textarea', rows: 12, section: 'mail' },
     ],
   },
   freelance: {

@@ -1,6 +1,6 @@
 import { BOARDS, STORAGE_VERSION } from '../config/boards';
 import type { BoardConfig, BoardId, BoardState, Card } from '../types';
-import { blankFields } from './cards';
+import { blankFields, toStringList } from './cards';
 import { sampleCards } from './samples';
 
 export function emptyBoard(config: BoardConfig): BoardState {
@@ -68,6 +68,12 @@ export function normalizeBoard(config: BoardConfig, raw: unknown): BoardState {
       statusChangedAt: typeof value.statusChangedAt === 'string' ? value.statusChangedAt : now,
       history: Array.isArray(value.history) ? value.history : [],
     } as Card;
+    // Tag-Felder dürfen nur Texte enthalten (Schutz gegen Import- und URL-Daten)
+    for (const field of config.fields) {
+      if (field.type === 'tags') {
+        (card as unknown as Record<string, unknown>)[field.key] = toStringList(value[field.key]);
+      }
+    }
     state.cards[id] = card;
   }
 

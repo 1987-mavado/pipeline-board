@@ -693,6 +693,120 @@ select.input {
   flex-shrink: 0;
 }
 
+/* ---------- Chips (Aufgaben-Tags) ---------- */
+
+.field--tags {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.field--tags legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 6px 10px;
+  background: none;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.2;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+button.chip:hover {
+  border-color: var(--text-2);
+  color: var(--text);
+}
+
+.chip--active {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+button.chip--active:hover {
+  background: var(--text-2);
+  border-color: var(--text-2);
+  color: var(--bg);
+}
+
+.chips--card {
+  margin-top: 10px;
+  gap: 4px;
+}
+
+.chip--sm {
+  padding: 3px 6px;
+  border-color: var(--line-2);
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.chip--more {
+  border-color: transparent;
+  color: var(--label);
+}
+
+/* ---------- Bewerbungsmail ---------- */
+
+.mail-draft {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.mail-draft .section-label {
+  margin: 0;
+}
+
+.mail-draft textarea.input {
+  min-height: 280px;
+  line-height: 1.6;
+}
+
+.mail-draft__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mail-draft__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--label);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--primary:disabled:hover {
+  background: var(--text);
+  border-color: var(--text);
+}
+
+.btn--ghost:disabled:hover {
+  color: var(--muted);
+}
+
 /* ---------- Buttons ---------- */
 
 .btn {

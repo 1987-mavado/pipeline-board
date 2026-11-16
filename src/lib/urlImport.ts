@@ -9,6 +9,7 @@
  */
 
 import { BOARDS } from '../config/boards';
+import { uid } from './cards';
 import { normalizeBoard } from './storage';
 import type { BoardId, BoardState, Card } from '../types';
 
@@ -17,13 +18,29 @@ export interface AddEntry {
   card: Partial<Card>;
 }
 
+/**
+ * Base64 → Text. Akzeptiert auch base64url und Leerzeichen, die URLSearchParams
+ * aus einem „+“ macht. Dekodiert UTF-8 (Umlaute), fällt sonst auf Latin-1 zurück.
+ */
+export function decodeBase64Text(raw: string): string {
+  let b64 = raw.trim().replace(/ /g, '+').replace(/-/g, '+').replace(/_/g, '/');
+  b64 += '='.repeat((4 - (b64.length % 4)) % 4);
+  const binary = atob(b64);
+  try {
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return binary;
+  }
+}
+
 /** Liest den ?add=-Parameter und gibt die Einträge zurück (oder []). */
 export function parseUrlImport(): AddEntry[] {
   try {
     const params = new URLSearchParams(window.location.search);
     const raw = params.get('add');
     if (!raw) return [];
-    const decoded = JSON.parse(atob(raw));
+    const decoded: unknown = JSON.parse(decodeBase64Text(raw));
     if (!Array.isArray(decoded)) return [];
     return decoded.filter(
       (e): e is AddEntry =>
@@ -58,7 +75,8 @@ export function applyUrlImport(
     const state: BoardState = result[board] ?? JSON.parse(JSON.stringify(current[board]));
 
     const now = new Date().toISOString();
-    const id = typeof card.id === 'string' && card.id ? card.id : `mk-url-${Date.now()}`;
+    // eindeutig, auch bei mehreren Karten ohne eigene ID in einem Link
+    const id = typeof card.id === 'string' && card.id ? card.id : `mk-url-${uid()}`;
     const firstCol = config.columns[0].id;
 
     // Karte nicht doppelt eintragen

@@ -1,7 +1,8 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KeyboardEvent, SyntheticEvent } from 'react';
-import { cardSubtitle, cardTitle, getField, needsFollowUp } from '../lib/cards';
+import { CARD_MAX_TAGS } from '../config/boards';
+import { cardSubtitle, cardTitle, getField, getList, needsFollowUp } from '../lib/cards';
 import { daysSince, formatDays } from '../lib/date';
 import type { BoardConfig, Card as CardData } from '../types';
 import { CheckIcon, CrossIcon } from './Icons';
@@ -23,12 +24,28 @@ export function CardView({ card, config, columnId, onSendTo }: CardViewProps) {
   const days = daysSince(card.statusChangedAt);
   const followUp = needsFollowUp(config, card, columnId);
   const targets = config.columns.filter((c) => c.outcome && c.id !== columnId);
+  const tags = config.tagsKey ? getList(card, config.tagsKey) : [];
+  const hiddenTags = tags.length - CARD_MAX_TAGS;
 
   return (
     <>
       <div className="card__main">
         <h3 className="card__title">{title}</h3>
         {subtitle && <p className="card__subtitle">{subtitle}</p>}
+        {tags.length > 0 && (
+          <ul className="chips chips--card" aria-label="aufgaben">
+            {tags.slice(0, CARD_MAX_TAGS).map((tag) => (
+              <li key={tag} className="chip chip--sm">
+                {tag}
+              </li>
+            ))}
+            {hiddenTags > 0 && (
+              <li className="chip chip--sm chip--more" aria-label={`und ${hiddenTags} weitere`}>
+                +{hiddenTags}
+              </li>
+            )}
+          </ul>
+        )}
       </div>
       <div className="card__meta">
         <span className="meta" title="seit der letzten statusänderung">

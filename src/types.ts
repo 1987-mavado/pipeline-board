@@ -42,6 +42,12 @@ export interface JobCard extends CardBase {
   /** YYYY-MM-DD */
   dateFound: string;
   dateSent: string;
+  /** Betreff der Bewerbungsmail */
+  draftSubject: string;
+  /** Anschreiben als Klartext */
+  draftBody: string;
+  /** Aufgaben-Tags aus JOB_TASK_TAGS. Optional, damit ältere Daten gültig bleiben. */
+  tasks?: string[];
 }
 
 export type WorkMode = '' | 'remote' | 'vor ort' | 'hybrid';
@@ -70,7 +76,7 @@ export interface BoardState {
   collapsed: Record<string, boolean>;
 }
 
-export type FieldType = 'text' | 'url' | 'date' | 'textarea' | 'select';
+export type FieldType = 'text' | 'url' | 'date' | 'textarea' | 'select' | 'tags';
 
 export interface FieldDef {
   key: string;
@@ -81,6 +87,12 @@ export interface FieldDef {
   /** halbe Breite im Drawer */
   half?: boolean;
   placeholder?: string;
+  /** Zeilenzahl für textarea */
+  rows?: number;
+  /** Auswahlwerte für type 'tags' */
+  tags?: readonly string[];
+  /** Eigener Block im Drawer, z. B. 'mail' für die Bewerbungsmail */
+  section?: 'mail';
 }
 
 export interface BoardConfig {
@@ -92,6 +104,8 @@ export interface BoardConfig {
   titleKey: string;
   subtitleKey: string;
   moneyKey: string;
+  /** Feld mit Tags, die auf der Karte als Chips erscheinen */
+  tagsKey?: string;
   searchKeys: string[];
   /** Betritt eine Karte die Spalte und ist das Datumsfeld leer, wird heute eingetragen. */
   autoDates: Record<string, string>;
