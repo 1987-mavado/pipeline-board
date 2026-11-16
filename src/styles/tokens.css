@@ -1,0 +1,23 @@
+/* Design-Tokens – bitte 1:1 halten */
+:root {
+  --bg: #0C0D0F;
+  --surface: #16181B;
+  --surface-2: #1F2226;
+  --line: #26292E;
+  --line-2: #3A3E45;
+  --text: #F2F2F0;
+  --text-2: #D6D8DC;
+  --muted: #A9ADB4;
+  --label: #8C9098;
+  --dim: #5B5F66;
+  --mark-bg: #FFE86B; /* einzige Akzentfarbe: Nachfass-Marker, Fokus */
+  --g-gap: 24px;
+  --g-m: 40px; /* Seitenrand */
+
+  /* abgeleitet */
+  --font-sans: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Tanker', 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+  --radius: 2px;
+  --dur: 180ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1); /* ease-out */
+}
